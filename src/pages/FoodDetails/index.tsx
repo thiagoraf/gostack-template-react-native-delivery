@@ -73,26 +73,41 @@ const FoodDetails: React.FC = () => {
 
   useEffect(() => {
     async function loadFood(): Promise<void> {
-      // Load a specific food with extras based on routeParams id
+      api.get(`/foods/${routeParams.id}`).then(response => {
+        setFood(response.data);
+
+        for (var i in response.data.extras) {
+          response.data.extras[i].quantity = 0;
+        }
+
+        setExtras(response.data.extras);
+      });
     }
 
     loadFood();
   }, [routeParams]);
 
   function handleIncrementExtra(id: number): void {
-    // Increment extra quantity
+    var index = extras.findIndex(extra => extra.id == id);
+    extras[index].quantity += 1;
+    setExtras([...extras]);
   }
 
   function handleDecrementExtra(id: number): void {
-    // Decrement extra quantity
+    var index = extras.findIndex(extra => extra.id == id);
+
+    if (extras[index].quantity == 0) return;
+    extras[index].quantity -= 1;
+    setExtras([...extras]);
   }
 
   function handleIncrementFood(): void {
-    // Increment food quantity
+    setFoodQuantity(foodQuantity + 1);
   }
 
   function handleDecrementFood(): void {
-    // Decrement food quantity
+    if (foodQuantity == 1) return;
+    setFoodQuantity(foodQuantity - 1);
   }
 
   const toggleFavorite = useCallback(() => {
@@ -100,11 +115,26 @@ const FoodDetails: React.FC = () => {
   }, [isFavorite, food]);
 
   const cartTotal = useMemo(() => {
-    // Calculate cartTotal
+    var total = 0;
+
+    total = food.price * foodQuantity;
+
+    for (var i in extras) {
+      total += extras[i].value * extras[i].quantity;
+    }
+
+    function numberToReal(numero: any) {
+      var numero = numero.toFixed(2).split('.');
+      numero[0] = 'R$ ' + numero[0].split(/(?=(?:...)*$)/).join('.');
+      return numero.join(',');
+    }
+
+    return numberToReal(total);
   }, [extras, food, foodQuantity]);
 
   async function handleFinishOrder(): Promise<void> {
     // Finish the order and save on the API
+    api.post('orders', food);
   }
 
   // Calculate the correct icon name

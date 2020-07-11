@@ -55,11 +55,18 @@ const Dashboard: React.FC = () => {
 
   async function handleNavigate(id: number): Promise<void> {
     // Navigate do ProductDetails page
+    navigation.navigate('FoodDetails', { id: id });
   }
 
   useEffect(() => {
     async function loadFoods(): Promise<void> {
-      // Load Foods from API
+      api
+        .get('/foods', {
+          params: { name_like: searchValue, category_like: selectedCategory },
+        })
+        .then(response => {
+          setFoods(response.data);
+        });
     }
 
     loadFoods();
@@ -67,14 +74,21 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     async function loadCategories(): Promise<void> {
-      // Load categories from API
+      api.get('/categories').then(response => {
+        setCategories(response.data);
+      });
     }
 
     loadCategories();
   }, []);
 
   function handleSelectCategory(id: number): void {
-    // Select / deselect category
+    if (selectedCategory == id) {
+      setSelectedCategory(null);
+      return;
+    }
+
+    setSelectedCategory(id);
   }
 
   return (
